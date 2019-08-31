@@ -2,9 +2,11 @@
 
 
 #include "OpenDoor.h"
+#include "Engine/World.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/PlayerController.h"
-//#include "Runtime/Engine/Classes/Components/ActorComponent.h"
+#include "Runtime/Engine/Classes/Components/ActorComponent.h"
+#define OUT
 
 // Sets default values for this component's properties
 UOpenDoor::UOpenDoor()
@@ -22,19 +24,18 @@ void UOpenDoor::BeginPlay()
 {
 	Super::BeginPlay();
 	Owner = GetOwner();
-	ActorThatOpens = GetWorld()->GetFirstPlayerController()->GetPawn();
 	// ...
 	
 }
 
 void UOpenDoor::OpenDoor() 
 {
-	Owner->SetActorRotation(FRotator(0.0f, OpenAngle, 0.0f));
+	Owner->SetActorRotation(FMath::Lerp(Owner->GetActorRotation(), FRotator(0.0f, OpenAngle, 0.0f), 0.1f));
 }
 
 void UOpenDoor::CloseDoor() 
 {
-	Owner->SetActorRotation(FRotator(0.0f, CloseAngle, 0.0f));
+	Owner->SetActorRotation(FMath::Lerp(Owner->GetActorRotation(), FRotator(0.0f, CloseAngle, 0.0f), 0.1f));
 }
 
 
@@ -42,19 +43,36 @@ void UOpenDoor::CloseDoor()
 void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) 
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	// Poll the Trigger Volume if the ActorTharOpens is in the volume
-	if (PressurePlate->IsOverlappingActor(ActorThatOpens)) 
+	// Poll the Trigger Volume 
+	if (GetTotalMassOfActorsOnPlate() > 30.f) // TODO make into a parameter 
 	{
 		OpenDoor();
 		LastDoorOpenTime = GetWorld()->GetTimeSeconds();
 	}
 
+	// Check if its time to close the door
 	if (GetWorld()->GetTimeSeconds() - LastDoorOpenTime > DoorCloseDelay) 
 	{
 		CloseDoor();
 	}
 
-	// Check if its time to close the door
 	// ...
 }
 
+float UOpenDoor::GetTotalMassOfActorsOnPlate()
+{
+	float TotalMass = 0.f;
+
+	// Find all the overlapping actors
+	TArray<AActor*> OverlappingActors;
+	PressurePlate->GetOverlappingActors(OUT OverlappingActors);
+
+	// Iterate through them adding their masses
+	for (const AActor* Actor : OverlappingActors)
+	{
+		TotalMass +=  Actor->FindComponentByClass<UPrimitiveComponent>()->GetMass();
+		UE_LOG(LogTemp, Warning, TEXT("%s on pressure plate"), *Actor->GetName());
+	}
+
+	return TotalMass;
+}

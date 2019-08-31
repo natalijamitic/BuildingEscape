@@ -30,7 +30,7 @@ public:
 
 private:
 	UPROPERTY(EditAnywhere)
-	float OpenAngle = 60.f;
+	float OpenAngle = 10.f;
 	float CloseAngle = 90.f;
 	
 	UPROPERTY(EditAnywhere)
@@ -40,6 +40,9 @@ private:
 	float DoorCloseDelay = 0.7f;
 	float LastDoorOpenTime;
 
-	AActor* ActorThatOpens; // Remember pawn inherits from actor
 	AActor* Owner; // The owning door
+
+	// Returns total mass in kg
+	float GetTotalMassOfActorsOnPlate();
+
 };
