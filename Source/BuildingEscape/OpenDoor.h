@@ -40,6 +40,6 @@ private:
 	float DoorCloseDelay = 0.7f;
 	float LastDoorOpenTime;
 
-	AActor* ActorThatOpens; //Remember pawn inherits from actor
-	AActor* Owner; //The owning door
+	AActor* ActorThatOpens; // Remember pawn inherits from actor
+	AActor* Owner; // The owning door
 };
